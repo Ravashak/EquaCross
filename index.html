@@ -3550,9 +3550,11 @@ function renderStats(){var el=$('statP');if(!el)return;if(!STATO){el.style.displ
   var rows=[['Level',p.lvl],['Health',Math.ceil(p.hp)+' / '+Math.round(p.maxHp)],['All damage','x'+(Math.round(p.dmg*100)/100)],['Attack rate','x'+(Math.round(p.rate*100)/100)],['Move speed',Math.round(p.speed)],['Regen',r1(p.regen)+' / s'],['Damage reduction',pc(p.dr||0)],['Block',pc(p.blk||0)],['XP bonus','+'+pc(p.xpB||0)],['Gem magnet',Math.round(p.mag)],['Basic shots',p.shots]];
   var h='<div class="gh"><b>Stats</b><span>Live, game keeps running</span><button class="btn" id="stclose" type="button">Close</button></div><div class="gs">';
   rows.forEach(function(r){h+='<div class="gi"><div class="gl">'+r[0]+'</div><b>'+r[1]+'</b></div>';});
-  h+='</div><div class="gh"><b>Abilities</b><span>damage per hit (with bonuses) / total dealt</span></div><div class="gs">';
-  Object.keys(AG).map(Number).filter(function(d){return has(p,d)&&AG[d].P;}).forEach(function(d){var g=AG[d],v=p[g.P]*p.dmg;h+='<div class="gi"><div class="gl">'+esc(ABN[d])+'</div><b>'+(v>=100?Math.round(v):r1(v))+'</b><span>'+(g.S?esc(g.S[0])+' '+r1(p[g.S[0]]):'')+'</span><span>dealt '+Math.round(dm[d]||0)+'</span></div>';});
-  el.innerHTML=h+'</div>';$('stclose').addEventListener('click',function(){STATO=false;renderStats();});el.style.display='block';}
+  h+='</div>';
+  var hasD=typeof DMG!=='undefined'&&DMG[ME]&&S.role!=='client';
+  if(hasD){var d0={},o=DMG[ME];for(var k in o)if(o[k]>=1)d0[k]=Math.round(o[k]);h+='<div class="gh"><b>Damage</b><span>most damage first, whole run so far</span></div>'+dmgBlock({d:d0,k:KL[ME]||0,t:Math.round(p.dtk||0),m:p.ms|0},Math.max(1,T))+'</div><p style="font-size:10px;opacity:.65;margin:6px 0">\u2605 mastery unlocked.</p>';}
+  else h+='<p style="font-size:11px;opacity:.7">Damage breakdown is tracked by the host and shows at the end of the run.</p>';
+  el.innerHTML=h;$('stclose').addEventListener('click',function(){STATO=false;renderStats();});el.style.display='block';}
 function gearToggle(on){GEARO=on===undefined?!GEARO:on;GEARD=true;renderGear();if(GEARO)$('gearP').scrollIntoView({block:'nearest'});}
 var UPS=[
   {name:'Sharper tiles',desc:'+25% all damage',apply:function(){me().dmg*=1.25;}},
@@ -4366,13 +4368,7 @@ function showOver(){
   $('tomenu').addEventListener('click',toMenu);
   if(over.st)$('dstat').addEventListener('click',function(){showStats(0);});else $('dstat').style.display='none';
 }
-function showStats(pi){
-  var st=over.st[pi]||over.st[0],ov=$('ov'),T0=Math.max(1,over.T),tot=0,rows=[],k;
-  for(k in st.d){tot+=st.d[k];rows.push([+k,st.d[k]]);}
-  rows.sort(function(a,b){return b[1]-a[1];});
-  var top=rows.length?rows[0][1]:1,h='<div class="panel"><h2>Damage stats</h2>';
-  if(over.names.length>1){h+='<div class="row2" style="margin-bottom:8px">'+over.names.map(function(n,i){return '<button type="button" class="btn'+(i===pi?' solid':'')+'" data-pi="'+i+'">'+esc(n)+'</button>';}).join('')+'</div>';}
-  h+='<p><b>'+esc(over.names[pi])+'</b> · level '+over.lv[pi]+'</p>';
+function dmgBlock(st,T0){var rows=[],tot=0,k,h='';for(k in st.d){tot+=st.d[k];rows.push([+k,st.d[k]]);}rows.sort(function(a,b){return b[1]-a[1];});var top=rows.length?rows[0][1]:1;
   h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:4px 0 8px;text-align:left">'+
     [['Total damage',fmt0(tot)],['Damage per second',fmt0(tot/T0)],['Operators defeated',fmt0(st.k)],['Damage taken',fmt0(st.t)]].map(function(c){return '<div style="background:rgba(255,255,255,.06);border-radius:8px;padding:6px 8px"><div style="font-size:10px;opacity:.7">'+c[0]+'</div><div style="font-size:16px;font-weight:800">'+c[1]+'</div></div>';}).join('')+'</div>';
   h+='<div style="max-height:24vh;overflow:auto;padding-right:4px">';
@@ -4381,6 +4377,15 @@ function showStats(pi){
     var nm=r[0]===99?'Basic attack':r[0]===98?'Other':(ABN[r[0]]||'?'),ms=r[0]<30&&((st.m>>r[0])&1)?' ★':'';
     h+='<div style="text-align:left;margin:5px 0"><div style="display:flex;justify-content:space-between;font-size:12px"><span>'+nm+ms+'</span><span>'+fmt0(r[1])+' · '+Math.round(100*r[1]/Math.max(1,tot))+'% · '+fmt0(r[1]/T0)+'/s</span></div><div style="height:7px;border-radius:4px;background:rgba(255,255,255,.08);overflow:hidden;margin-top:2px"><i style="display:block;height:100%;width:'+Math.max(2,100*r[1]/top)+'%;background:'+(r[0]===99||r[0]===98?'#8aa095':'#FFD166')+'"></i></div></div>';
   });
+  return h;}
+function showStats(pi){
+  var st=over.st[pi]||over.st[0],ov=$('ov'),T0=Math.max(1,over.T),tot=0,rows=[],k;
+  for(k in st.d){tot+=st.d[k];rows.push([+k,st.d[k]]);}
+  rows.sort(function(a,b){return b[1]-a[1];});
+  var top=rows.length?rows[0][1]:1,h='<div class="panel"><h2>Damage stats</h2>';
+  if(over.names.length>1){h+='<div class="row2" style="margin-bottom:8px">'+over.names.map(function(n,i){return '<button type="button" class="btn'+(i===pi?' solid':'')+'" data-pi="'+i+'">'+esc(n)+'</button>';}).join('')+'</div>';}
+  h+='<p><b>'+esc(over.names[pi])+'</b> · level '+over.lv[pi]+'</p>';
+  h+=dmgBlock(st,T0);
   h+='</div><p style="font-size:10px;opacity:.65;margin:6px 0">★ mastery unlocked. Per second averages the whole run.</p><div class="row2"><button class="btn" id="sback" type="button">Back</button><button class="btn solid" id="tomenu2" type="button">Menu</button></div></div>';
   ov.innerHTML=h;
   ov.querySelectorAll('[data-pi]').forEach(function(b){b.addEventListener('click',function(){showStats(+b.dataset.pi);});});
