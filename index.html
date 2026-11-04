@@ -3557,7 +3557,7 @@ function renderStats(){var el=$('statP');if(!el)return;if(!STATO){el.style.displ
   el.innerHTML=h;$('stclose').addEventListener('click',function(){STATO=false;renderStats();});el.style.display='block';}
 function gearToggle(on){GEARO=on===undefined?!GEARO:on;GEARD=true;renderGear();if(GEARO)$('gearP').scrollIntoView({block:'nearest'});}
 var UPS=[
-  {name:'Sharper tiles',desc:'+25% all damage',apply:function(){me().dmg*=1.25;}},
+  {name:'Sharper tiles',desc:'+10% all damage',apply:function(){me().dmg*=1.1;}},
   {name:'Quick hands',desc:'+20% basic attack speed',apply:function(){me().rate*=1.2;}},
   {name:'Padded digits',desc:'+25 max health and heal 25',apply:function(){addMaxHp(25);}},
   {name:'Light feet',desc:'+10% move speed',apply:function(){me().speed*=1.1;}},
@@ -3595,7 +3595,7 @@ var UPS=[
   {d:11,name:'Sharper arrows',desc:'+35% homing arrow damage (max 5 ranks)',ok:function(){return rkOk('sa',5);},apply:function(){me().arrowD*=1.35;rkUp('sa');}},
   {d:11,name:'Quicker arrows',desc:'Homing arrows fire 25% faster (max 4 ranks)',ok:function(){return rkOk('aq',4);},apply:function(){me().arrowT*=.75;rkUp('aq');}},
   {d:12,name:'Wider pool',desc:'+25% pool radius and +10% damage (max 5 ranks)',ok:function(){return me().poolRk<5;},apply:function(){me().poolR*=1.25;me().poolD*=1.1;me().poolRk++;}},
-  {d:12,name:'Longer pool',desc:'Pools last 1.5 seconds longer',apply:function(){me().poolLife+=1.5;}},
+  {d:12,name:'Longer pool',desc:'Pools last 1.5 seconds longer (max 4 ranks)',ok:function(){return rkOk('lp',4);},apply:function(){me().poolLife+=1.5;rkUp('lp');}},
   {d:12,name:'Deeper slow',desc:'Pools slow enemies more (up to 75%) and hit 10% harder',ok:function(){return me().poolSlow<.74;},apply:function(){me().poolSlow=Math.min(.75,me().poolSlow+.12);me().poolD*=1.1;}},
   {d:12,name:'Faster launch',desc:'Pools launch 20% more often (max 5 ranks)',ok:function(){return rkOk('pl',5);},apply:function(){me().poolT*=.8;rkUp('pl');}},
   {d:13,name:'More bolts',desc:'+1 lightning strike each storm',ok:function(){return me().ltN<6;},apply:function(){me().ltN++;}},
@@ -3687,10 +3687,11 @@ function pickN(n){
   if(!has(m,11)&&Math.random()<.45)pool.push({ld:11,name:'Learn: Homing Arrow',desc:'Fires arrows that home in on the strongest enemy, then ricochet to the next 3 closest.',apply:function(){gain(m,11);}});
   CH.forEach(function(c){if(c.d===6&&S.diff==='easy')return;if(!has(m,c.d)&&Math.random()<.45){pool.push({ld:c.d,name:'Learn: '+c.name,desc:c.desc,apply:function(){gain(m,c.d);}});}});
   if(dmgFull(m))pool=pool.filter(function(u){return !(u.ld!==undefined&&isDmg(u.ld));});
+  var allMax=dmgList(m).every(function(d){return !pool.some(function(u){return u.d===d&&/damage/i.test(u.desc);});});
+  if(!allMax&&Math.random()>=.06)pool=pool.filter(function(u){return u.name!=='Sharper tiles';});
   for(var i=pool.length-1;i>0;i--){var j=Math.random()*(i+1)|0,x=pool[i];pool[i]=pool[j];pool[j]=x;}
   var out3=pool.slice(0,n);
-  if(dmgFull(m)){var miss=0;dmgList(m).forEach(function(d){if(!pool.some(function(u){return u.d===d&&/damage/i.test(u.desc);}))miss++;});
-    if(miss&&!out3.some(function(u){return u.name==='Sharper tiles';})&&Math.random()<Math.min(.9,.3+.2*miss)){var st=UPS.filter(function(u){return u.name==='Sharper tiles';})[0];if(st)out3[Math.random()*out3.length|0]=st;}}
+  if(allMax&&dmgFull(m)&&!out3.some(function(u){return u.name==='Sharper tiles';})&&Math.random()<.3){var st=UPS.filter(function(u){return u.name==='Sharper tiles';})[0];if(st)out3[Math.random()*out3.length|0]=st;}
   return out3;
 }
 function statBlob(){var m=me(),o={};STK.forEach(function(k){o[k]=Math.round(m[k]*100)/100;});return o;}
@@ -4172,7 +4173,7 @@ function sim(dt){
     if(hasM(p,3)&&p.mv){p.trT-=dt;if(p.trT<=0){p.trT=.12;if(TR.length<40)TR.push({x:p.x,y:p.y,life:1.6,max:1.6,tk:.2,dm:9*p.dmg,o:si});}}
     if(has(p,21)){SRC=21;p.rtC+=dt;if(p.rtC>=p.rtT){if(vineCast(p,si)){p.rtC=0;if(p===me()||S.role==='host')sfx('rumble',200);}else p.rtC=p.rtT;}}
     if(has(p,20)){SRC=20;p.cmC+=dt;if(p.cmC>=p.cmT){var ct=E.length?cometPick(p):null;if(ct){p.cmC=0;cometCast(p,si,ct);if(hasM(p,20)){var c2=cometPick(p,ct);if(c2)cometCast(p,si,c2);}if(p===me()||S.role==='host')sfx('ice',100);}else p.cmC=p.cmT;}}
-    if(has(p,19)){SRC=19;p.twC+=dt;if(p.twC>=p.twT){if(E.length&&TW.length<26){p.twC=0;for(var tk=0;tk<p.twN&&TW.length<26;tk++){var ta=Math.random()*6.2832;TW.push({id:(twid=(twid+1)&4095),x:p.x,y:p.y,vx:Math.cos(ta)*52,vy:Math.sin(ta)*52,life:p.twDur,max:p.twDur,tick:.15+Math.random()*.2,rt:.4+Math.random(),o:si,pull:3.5,lgv:hasL(p,19)?1:0,sm:p.twSM||0,R:p.twR,dm:p.twD*p.dmg,st:p.twSt*(hasL(p,19)?2:1),ms:hasM(p,19)});}if(p===me()||S.role==='host')sfx('zap',150);}else p.twC=p.twT;}}
+    if(has(p,19)){SRC=19;p.twC+=dt;if(p.twC>=p.twT/p.twN){if(E.length&&TW.length<26){p.twC=0;for(var tk=0;tk<1;tk++){var ta=Math.random()*6.2832;TW.push({id:(twid=(twid+1)&4095),x:p.x,y:p.y,vx:Math.cos(ta)*52,vy:Math.sin(ta)*52,life:p.twDur,max:p.twDur,tick:.15+Math.random()*.2,rt:.4+Math.random(),o:si,pull:3.5,lgv:hasL(p,19)?1:0,sm:p.twSM||0,R:p.twR,dm:p.twD*p.dmg,st:p.twSt*(hasL(p,19)?2:1),ms:hasM(p,19)});}if(p===me()||S.role==='host')sfx('zap',150);}else p.twC=p.twT/p.twN;}}
     if(has(p,17)){SRC=17;p.fbC+=dt;if(p.fbC>=p.fbT){var tf=strongest(E,p.x,p.y);if(tf){p.fbC=0;var fb0=Math.atan2(tf.y-p.y,tf.x-p.x);for(var fi=0;fi<p.fbN;fi++){var fan=fb0+(fi-(p.fbN-1)/2)*.26;PR.push({id:(pid=(pid+1)&4095),k:'fb',o:si,x:p.x,y:p.y,vx:Math.cos(fan)*250,vy:Math.sin(fan)*250,a:fan,dm:p.fbD*p.dmg,r:p.fbSz,life:1.9,pierce:99,hit:{},bd:p.fbDur,bdps:p.fbD*p.dmg*p.fbPct/p.fbDur});}if(p===me()||S.role==='host')sfx('fire',100);}else p.fbC=p.fbT;}}
     if(has(p,16)){SRC=16;whTick(p,si,dt);}
     if(has(p,22)){SRC=22;p.necC+=dt;if(p.necC>=p.necT){if(DEADL.length&&NCR.length<40){p.necC=0;var nn=Math.min(hasL(p,22)?8:p.necN,DEADL.length),tk=DEADL.splice(DEADL.length-nn,nn);tk.forEach(function(d){NCR.push({id:(bid=(bid+1)&4095),x:d.x,y:d.y,r:Math.max(7,Math.min(14,d.r)),life:p.necDur*(hasL(p,22)?1.25:1),max:p.necDur*(hasL(p,22)?1.25:1),dm:p.necD*p.dmg*Math.max(1,Math.pow(d.mhp/30,.25)),o:si,cat:hasM(p,22)||hasL(p,22),t:.4,ph:Math.random()*6});addEX(d.x,d.y,30,3);});if(p===me()||S.role==='host')sfx('rumble',150);}else p.necC=p.necT;}}
@@ -4739,8 +4740,8 @@ function draw(){
     ctx.fillStyle='#1C2620';ctx.font='800 20px "IBM Plex Mono",monospace';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(p.ch,0,1);
     ctx.restore();
     if(p.shT>0||p.sh||(i===ME&&PZ)){ctx.strokeStyle='rgba(127,208,255,'+(.5+.4*Math.sin(T*12))+')';ctx.lineWidth=4;ctx.beginPath();ctx.arc(p.x,p.y,22,0,6.3);ctx.stroke();}
+    ctx.fillStyle='#0A150F';ctx.fillRect(p.x-14,p.y+17,28,4);ctx.fillStyle=p.hp/p.maxHp>.3?'#7BD6A0':'#FF6B7A';ctx.fillRect(p.x-14,p.y+17,28*Math.max(0,p.hp/p.maxHp),4);
     if(PL.length>1){
-      ctx.fillStyle='#0A150F';ctx.fillRect(p.x-14,p.y+17,28,4);ctx.fillStyle=p.hp/p.maxHp>.3?'#7BD6A0':'#FF6B7A';ctx.fillRect(p.x-14,p.y+17,28*Math.max(0,p.hp/p.maxHp),4);
       ctx.font='600 10px "IBM Plex Mono",monospace';ctx.fillStyle=i===ME?'#FFD166':'#EEF3E8';ctx.textAlign='center';ctx.textBaseline='alphabetic';ctx.fillText(p.name.slice(0,8),p.x,p.y-17);
     }
   });
