@@ -3114,7 +3114,7 @@ var cv=$('cv'),ctx=cv.getContext('2d'),W=360,H=540;
 var CH=[
   {d:0,name:'The Void',desc:'Aura. A ring around you burns every enemy that touches it.'},
   {d:1,name:'The Lancer',desc:'Spear. Charges, then throws a piercing spear at the strongest enemy.'},
-  {d:2,name:'The Pair',desc:'Shurikens. Throwing stars spiral outward from you and hit anything they cross.'},
+  {d:2,name:'The Quartet',desc:'Shurikens. Four throwing stars spiral outward from you and hit anything they cross.'},
   {d:3,name:'The Runner',desc:'Swift. +30% move speed for The Runner, +10% if learned. Upgrades raise it to 50%.'},
   {d:4,name:'The Wall',desc:'Sturdy. +30% health for The Wall, +10% if learned. Upgrades raise it to 50%.'},
   {d:5,name:'The Pinball',desc:'Ricochet. Fires balls in random directions that bounce off the walls. At most 3 at once; upgrades raise the cap.'},
@@ -3648,7 +3648,7 @@ var UPS=[
   {d:9,name:'Long guard',desc:'Shield lasts +1 second (max 4 ranks)',ok:function(){return rkOk('lg',4);},apply:function(){me().shDur+=1;rkUp('lg');}}
 ];
 var DMGAB=[0,1,2,5,8,10,11,12,13,15,16,17,19,20,21,22];
-var ABN={0:'The Void',1:'The Lancer',2:'The Pair',3:'The Runner',4:'The Wall',5:'The Pinball',6:'The Scholar',7:'The Lucky',8:'The Shover',9:'The Guard',10:'Leaping Slam',11:'Homing Arrow',12:'Tar Pool',13:'Lightning Strike',14:'Petrify',15:'Volcano',16:'Ice Whelp',17:'Fireball',18:'Block',19:'Vortex',20:'Ice Comet',21:'Entangling Roots',22:'Necromancer'};
+var ABN={0:'The Void',1:'The Lancer',2:'The Quartet',3:'The Runner',4:'The Wall',5:'The Pinball',6:'The Scholar',7:'The Lucky',8:'The Shover',9:'The Guard',10:'Leaping Slam',11:'Homing Arrow',12:'Tar Pool',13:'Lightning Strike',14:'Petrify',15:'Volcano',16:'Ice Whelp',17:'Fireball',18:'Block',19:'Vortex',20:'Ice Comet',21:'Entangling Roots',22:'Necromancer'};
 var ABD={0:'Aura. A ring around you burns every enemy that touches it.',1:'Spear. Charges, then throws a piercing spear at the strongest enemy.',2:'Shurikens. Throwing stars spiral outward from you, 4 per 3 seconds, and hit anything they cross.',3:'Swift. Moves much faster.',4:'Sturdy. A much bigger health pool.',5:'Ricochet. Fires balls that bounce off the walls.',6:'Patient. 60% more time to solve puzzles.',7:'Easy sums. Puzzles never use the longest length.',8:'Shockwave. Periodically pushes every nearby enemy back.',9:'Shield. Tap the button for 3 seconds of immunity.',10:'Tap anywhere on the field to leap there for a big area slam. 30 second cooldown.',11:'Homing arrows that ricochet between enemies.',12:'Lobs a sticky pool that slows enemies and burns them a little.',13:'Calls down bolts of negative charge on random enemies.',14:'Turns nearby enemies to stone for 2 seconds every 30 seconds.',15:'Raises volcanoes that spew exploding lava balls.',16:'An ice dragon whelp stays near you, breathing a freezing cone at the strongest enemy close by. It soaks up some of the damage you take, heals itself with life leech, and returns 15 s after falling.',17:'Piercing fireballs that set enemies ablaze.',18:'20% chance to ignore a hit and reflect part of its damage back.',19:'Tornados swirl around at random, electrocuting nearby enemies with a chance to stun.',20:'Calls an ice comet down from space onto a crowd. The impact and the ice fragments it throws slow enemies, and enemies slowed repeatedly freeze solid.',22:'Raises the last few fallen enemies (not bosses) as ghouls that fight for you for a short time.',21:'Vines creep underground toward the toughest nearby enemies and erupt, wrapping them up. Wrapped enemies cannot move and take damage over time.'};
 function isDmg(d){return DMGAB.indexOf(d)>=0;}
 function dmgList(m){return DMGAB.filter(function(d){return has(m,d);});}
@@ -3669,7 +3669,7 @@ function bossOffers(){
 }
 function rkTag(u){if(u.ld!==undefined||u.mast!==undefined)return '';var n=(me().ur||{})[u.name]||0,mm=/max (\d+) ranks?/.exec(u.desc||'');return '<small class="rkt">Rank '+n+' \u2192 '+(n+1)+(mm?' of '+mm[1]:'')+'</small>';}
 function orbEach(p,fn){var iv=3/Math.max(1,p.orbs),du=p.orbDur||3,k1=Math.floor(T/iv),k0=Math.max(0,Math.floor((T-du)/iv)+1),S3=3.2*(p.orbS||1),R1=45*du;
-  for(var k=k0;k<=k1;k++){var ta=T-k*iv;if(ta<0||ta>du)continue;var u=ta/du,r=14+(R1-14)*u,a=k*2.399+S3*ta;fn(k,p.x+Math.cos(a)*r,p.y+Math.sin(a)*r,u);}}
+  for(var k=k0;k<=k1;k++){var ta=T-k*iv;if(ta<0||ta>du)continue;var u=ta/du,r=14+(R1-14)*u,a=k*6.2832*iv/du+S3*T;fn(k,p.x+Math.cos(a)*r,p.y+Math.sin(a)*r,u);}}
 function rkOk(k,n){return (me().rk[k]||0)<n;}
 function rkUp(k){me().rk[k]=(me().rk[k]||0)+1;}
 function pickThree(){return pickN(3);}
